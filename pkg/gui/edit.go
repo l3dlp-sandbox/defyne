@@ -8,8 +8,6 @@ import (
 	"github.com/fyne-io/defyne/internal/guidefs"
 )
 
-type DefyneContext = guidefs.DefyneContext
-
 // CreateNew returns a new instance of the given widget type
 func CreateNew(name string, d DefyneContext) fyne.CanvasObject {
 	guidefs.InitOnce()

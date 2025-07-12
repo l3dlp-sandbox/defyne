@@ -9,7 +9,6 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	_ "fyne.io/fyne/v2/test"
-	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/fyne-io/defyne/internal/guidefs"
@@ -137,16 +136,4 @@ func TestEncodeSplit(t *testing.T) {
 	err := EncodeObject(s, &context{meta: meta}, &buf)
 	assert.Nil(t, err)
 	assert.Equal(t, splitJSON, buf.String())
-}
-
-type context struct {
-	meta map[fyne.CanvasObject]map[string]string
-}
-
-func (c *context) Metadata() map[fyne.CanvasObject]map[string]string {
-	return c.meta
-}
-
-func (c *context) Theme() fyne.Theme {
-	return theme.DefaultTheme()
 }
