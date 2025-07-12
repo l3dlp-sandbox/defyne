@@ -212,15 +212,65 @@ func initContainers() {
 				return container.NewScroll(container.NewStack())
 			},
 			Edit: func(obj fyne.CanvasObject, c DefyneContext, _ func([]*widget.FormItem), _ func()) []*widget.FormItem {
-				return []*widget.FormItem{}
+				scroll := obj.(*container.Scroll)
+				dirVert := widget.NewCheck("", func(on bool) {
+					isHorizontal := scroll.Direction == container.ScrollBoth || scroll.Direction == container.ScrollHorizontalOnly
+					if on {
+						if isHorizontal {
+							scroll.Direction = container.ScrollBoth
+						} else {
+							scroll.Direction = container.ScrollVerticalOnly
+						}
+					} else {
+						if isHorizontal {
+							scroll.Direction = container.ScrollHorizontalOnly
+						} else {
+							scroll.Direction = container.ScrollNone
+						}
+					}
+
+					scroll.Refresh()
+				})
+				dirVert.Checked = scroll.Direction == container.ScrollBoth || scroll.Direction == container.ScrollVerticalOnly
+				dirHoriz := widget.NewCheck("", func(on bool) {
+					isVertical := scroll.Direction == container.ScrollBoth || scroll.Direction == container.ScrollVerticalOnly
+					if on {
+						if isVertical {
+							scroll.Direction = container.ScrollBoth
+						} else {
+							scroll.Direction = container.ScrollHorizontalOnly
+						}
+					} else {
+						if isVertical {
+							scroll.Direction = container.ScrollVerticalOnly
+						} else {
+							scroll.Direction = container.ScrollNone
+						}
+					}
+
+					scroll.Refresh()
+				})
+				dirHoriz.Checked = scroll.Direction == container.ScrollBoth || scroll.Direction == container.ScrollHorizontalOnly
+				return []*widget.FormItem{
+					widget.NewFormItem("Scroll Vertical", dirVert),
+					widget.NewFormItem("Scroll Horizontal", dirHoriz),
+				}
 			},
 			Gostring: func(obj fyne.CanvasObject, c DefyneContext, defs map[string]string) string {
 				props := c.Metadata()
 				s := obj.(*container.Scroll)
 				str := &strings.Builder{}
-				str.WriteString("container.NewScroll(")
-				writeGoStringExcluding(str, nil, c, defs, s.Content)
-				str.WriteString(")")
+
+				if s.Direction != container.ScrollBoth {
+					str.WriteString(fmt.Sprintf("&container.Scroll{Direction: %s,\nContent: ", directionName(s.Direction)))
+					writeGoStringExcluding(str, nil, c, defs, s.Content)
+					str.WriteString("}")
+				} else {
+					str.WriteString("container.NewScroll(")
+					writeGoStringExcluding(str, nil, c, defs, s.Content)
+					str.WriteString(")")
+				}
+
 				return widgetRef(props[obj], defs, str.String())
 			},
 			Packages: func(_ fyne.CanvasObject, _ DefyneContext) []string {

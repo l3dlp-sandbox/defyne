@@ -4,8 +4,22 @@ import (
 	"strings"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 )
+
+func directionName(d container.ScrollDirection) string {
+	switch d {
+	case container.ScrollBoth:
+		return "container.ScrollBoth"
+	case container.ScrollHorizontalOnly:
+		return "container.ScrollHorizontalOnly"
+	case container.ScrollVerticalOnly:
+		return "container.ScrollVerticalOnly"
+	default:
+		return "container.ScrollNone"
+	}
+}
 
 func escapeLabel(inStr string) (outStr string) {
 	outStr = strings.ReplaceAll(inStr, "\"", "\\\"")
