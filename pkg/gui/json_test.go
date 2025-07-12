@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	_ "fyne.io/fyne/v2/test"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
 	"github.com/fyne-io/defyne/internal/guidefs"
@@ -32,7 +33,9 @@ const labelJSON = `{
       "Underline": false
     },
     "Truncation": 0,
-    "Importance": 0
+    "Importance": 0,
+    "SizeName": "",
+    "Selectable": false
   }
 }`
 
@@ -72,7 +75,8 @@ func TestDecodeObject(t *testing.T) {
 	guidefs.InitOnce()
 
 	buf := bytes.NewReader([]byte(fmt.Sprintf(labelJSON, "\n  \"Name\": \"myLabel\",")))
-	obj, meta, err := DecodeObject(buf)
+	meta := make(map[fyne.CanvasObject]map[string]string)
+	obj, err := DecodeObject(buf, &context{meta: meta})
 	assert.Nil(t, err)
 
 	l, ok := obj.(*widget.Label)
@@ -85,7 +89,8 @@ func TestDecodeObject(t *testing.T) {
 
 func TestDecodeSplit(t *testing.T) {
 	buf := bytes.NewReader([]byte(splitJSON))
-	obj, meta, err := DecodeObject(buf)
+	meta := make(map[fyne.CanvasObject]map[string]string)
+	obj, err := DecodeObject(buf, &context{meta: meta})
 	assert.Nil(t, err)
 
 	s, ok := obj.(*container.Split)
@@ -113,7 +118,7 @@ func TestEncodeObject(t *testing.T) {
 	meta := map[fyne.CanvasObject]map[string]string{l: props}
 
 	var buf bytes.Buffer
-	err := EncodeObject(l, meta, &buf)
+	err := EncodeObject(l, &context{meta: meta}, &buf)
 	assert.Nil(t, err)
 	assert.Equal(t, fmt.Sprintf(labelJSON, "\n  \"Name\": \"myLabel\",")+"\n", buf.String())
 }
@@ -129,7 +134,19 @@ func TestEncodeSplit(t *testing.T) {
 	meta := map[fyne.CanvasObject]map[string]string{s: props}
 
 	var buf bytes.Buffer
-	err := EncodeObject(s, meta, &buf)
+	err := EncodeObject(s, &context{meta: meta}, &buf)
 	assert.Nil(t, err)
 	assert.Equal(t, splitJSON, buf.String())
+}
+
+type context struct {
+	meta map[fyne.CanvasObject]map[string]string
+}
+
+func (c *context) Metadata() map[fyne.CanvasObject]map[string]string {
+	return c.meta
+}
+
+func (c *context) Theme() fyne.Theme {
+	return theme.DefaultTheme()
 }

@@ -53,20 +53,17 @@ type cont struct {
 
 // DecodeObject returns a tree of `CanvasObject` elements from the provided JSON `Reader` and
 // updates the metadata map to include any additional information.
-func DecodeObject(r io.Reader, d DefyneContext) (fyne.CanvasObject, map[fyne.CanvasObject]map[string]string, error) {
+func DecodeObject(r io.Reader, d DefyneContext) (fyne.CanvasObject, error) {
 	guidefs.InitOnce()
 
 	var data interface{}
 	err := json.NewDecoder(r).Decode(&data)
 	if err != nil || data == nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	meta := make(map[fyne.CanvasObject]map[string]string)
-	root := data.(map[string]interface{})
-
-	obj, err := DecodeMap(root, d)
-	return obj, meta, err
+	obj, err := DecodeMap(data.(map[string]interface{}), d)
+	return obj, err
 }
 
 // DecodeMap returns a tree of `CanvasObject` elements from the provided JSON map and
@@ -250,11 +247,6 @@ func DecodeMap(m map[string]interface{}, d DefyneContext) (fyne.CanvasObject, er
 // If an error occurs it will be returned, otherwise nil.
 func EncodeObject(obj fyne.CanvasObject, d DefyneContext, w io.Writer) error {
 	guidefs.InitOnce()
-	meta := d.Metadata()
-
-	if meta == nil {
-		meta = make(map[fyne.CanvasObject]map[string]string)
-	}
 	tree, _ := EncodeMap(obj, d)
 
 	e := json.NewEncoder(w)

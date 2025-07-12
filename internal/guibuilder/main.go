@@ -46,13 +46,12 @@ func NewBuilder(u fyne.URI, win fyne.Window) *Builder {
 		dialog.ShowError(err, win)
 	}
 
-	meta := make(map[fyne.CanvasObject]map[string]string)
-	builder := &Builder{uri: u, win: win, meta: meta}
+	builder := &Builder{uri: u, win: win, meta: make(map[fyne.CanvasObject]map[string]string)}
 	var obj fyne.CanvasObject
 	if r == nil {
 		obj = previewUI()
 	} else {
-		obj, meta, err = gui.DecodeObject(r, builder)
+		obj, err = gui.DecodeObject(r, builder)
 		if err != nil {
 			dialog.ShowError(err, win)
 		}
@@ -60,9 +59,6 @@ func NewBuilder(u fyne.URI, win fyne.Window) *Builder {
 
 		if obj == nil {
 			obj = previewUI()
-		}
-		if meta == nil {
-			meta = make(map[fyne.CanvasObject]map[string]string)
 		}
 	}
 
