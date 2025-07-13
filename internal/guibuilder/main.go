@@ -4,7 +4,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -16,8 +15,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 
-	"github.com/fyne-io/defyne/internal/guidefs"
-	"github.com/fyne-io/defyne/pkg/gui"
+	"github.com/fyne-io/refyne"
 )
 
 var (
@@ -28,7 +26,7 @@ var (
 
 // Builder is a simple type handle for a GUI builder instance.
 type Builder struct {
-	gui.DefyneContext
+	refyne.Context
 
 	root, current fyne.CanvasObject
 	uri           fyne.URI
@@ -40,7 +38,6 @@ type Builder struct {
 // NewBuilder returns an instance of the GUI builder for the specified URI.
 // The Window parameter allows presenting dialogs etc.
 func NewBuilder(u fyne.URI, win fyne.Window) *Builder {
-	guidefs.InitOnce()
 	r, err := storage.Reader(u)
 	if err != nil {
 		dialog.ShowError(err, win)
@@ -51,7 +48,7 @@ func NewBuilder(u fyne.URI, win fyne.Window) *Builder {
 	if r == nil {
 		obj = previewUI()
 	} else {
-		obj, err = gui.DecodeObject(r, builder)
+		obj, err = refyne.DecodeObject(r, builder)
 		if err != nil {
 			dialog.ShowError(err, win)
 		}
@@ -95,7 +92,7 @@ func (b *Builder) Run() {
 		fyne.LogError("Failed get storage writer", err)
 		return
 	}
-	err = gui.ExportGoPreview(b.root, b, w)
+	err = refyne.ExportGoPreview(b.root, b, w)
 	if err != nil {
 		fyne.LogError("Failed to export go preview", err)
 		return
@@ -133,7 +130,7 @@ func (b *Builder) Save() error {
 	if err != nil {
 		return err
 	}
-	err = gui.ExportGo(b.root, b, name, w)
+	err = refyne.ExportGo(b.root, b, name, w)
 	if err != nil {
 		return err
 	}
@@ -153,29 +150,29 @@ func (b *Builder) Save() error {
 }
 
 func (b *Builder) save(w fyne.URIWriteCloser) error {
-	err := gui.EncodeObject(b.root, b, w)
+	err := refyne.EncodeObject(b.root, b, w)
 	_ = w.Close()
 	return err
 }
 
 func (b *Builder) buildLibrary() fyne.CanvasObject {
-	var selected *guidefs.WidgetInfo
+	var selected string
 	tempNames := []string{}
 	widgetNames := []string{}
 	addClass := func(name string) {
 		widgetNames = append(widgetNames, name)
 		tempNames = append(tempNames, name)
 	}
-	for _, name := range guidefs.WidgetNames {
+	for _, name := range refyne.WidgetClassList() {
 		addClass(name)
 	}
-	for _, name := range guidefs.ContainerNames {
+	for _, name := range refyne.ContainerClassList() {
 		addClass(name)
 	}
-	for _, name := range guidefs.CollectionNames {
+	for _, name := range refyne.CollectionClassList() {
 		addClass(name)
 	}
-	for _, name := range guidefs.GraphicsNames {
+	for _, name := range refyne.GraphicsClassList() {
 		addClass(name)
 	}
 	list := widget.NewList(func() int {
@@ -186,16 +183,14 @@ func (b *Builder) buildLibrary() fyne.CanvasObject {
 		if i >= len(tempNames) {
 			return
 		}
-		obj.(*widget.Label).SetText(guidefs.Lookup(tempNames[i]).Name)
+
+		obj.(*widget.Label).SetText(widgetName(tempNames[i]))
 	})
 	list.OnSelected = func(i widget.ListItemID) {
-		match := guidefs.Lookup(tempNames[i])
-		if match != nil {
-			selected = match
-		}
+		selected = tempNames[i]
 	}
 	list.OnUnselected = func(widget.ListItemID) {
-		selected = nil
+		selected = ""
 	}
 
 	searchBox := widget.NewEntry()
@@ -204,7 +199,7 @@ func (b *Builder) buildLibrary() fyne.CanvasObject {
 		s = strings.ToLower(s)
 		tempNames = []string{}
 		for i := 0; i < len(widgetNames); i++ {
-			test := strings.ToLower(guidefs.Lookup(widgetNames[i]).Name)
+			test := strings.ToLower(widgetName(widgetNames[i]))
 			if strings.Contains(test, s) {
 				tempNames = append(tempNames, widgetNames[i])
 			}
@@ -216,19 +211,12 @@ func (b *Builder) buildLibrary() fyne.CanvasObject {
 
 	return container.NewBorder(searchBox, widget.NewButtonWithIcon("Insert", theme.ContentAddIcon(), func() {
 		if c, ok := b.current.(*fyne.Container); ok {
-			if selected != nil {
-				c.Objects = append(c.Objects, selected.Create(b))
+			if selected != "" {
+				c.Objects = append(c.Objects, refyne.CreateNew(selected, b))
 				c.Refresh()
 				// cause property editor to refresh
 				b.choose(c)
 			}
-			return
-		}
-
-		class := reflect.TypeOf(b.current).String()
-		if wid := guidefs.Lookup(class); wid != nil && wid.IsContainer() {
-			wid.AddChild(b.current, selected.Create(b))
-
 			return
 		}
 
@@ -271,9 +259,9 @@ func (b *Builder) choose(o fyne.CanvasObject) {
 	if props == nil {
 		props = make(map[string]string)
 	}
-	nameItem := widget.NewFormItem("Type", widget.NewLabel(gui.NameOf(o)))
+	nameItem := widget.NewFormItem("Type", widget.NewLabel(refyne.NameOf(o)))
 	editForm = widget.NewForm()
-	items := gui.EditorFor(o, b, func(items []*widget.FormItem) {
+	items := refyne.EditorFor(o, b, func(items []*widget.FormItem) {
 		editForm.Items = nil
 		editForm.Refresh()
 		editForm.Items = append([]*widget.FormItem{nameItem}, items...)
@@ -319,4 +307,13 @@ func previewUI() fyne.CanvasObject {
 	return container.New(layout.NewVBoxLayout(),
 		widget.NewLabel("label"),
 		widget.NewButtonWithIcon("Button", theme.HomeIcon(), func() {}))
+}
+
+func widgetName(in string) string {
+	split := strings.Split(in, ".")
+	if len(split) > 1 {
+		return split[1]
+	} else {
+		return in
+	}
 }

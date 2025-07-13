@@ -7,8 +7,9 @@ require (
 	fyne.io/setup v0.0.0-20230325225027-e5de4a66c608
 	fyne.io/x/fyne v0.0.0-20211027195715-357fb402507f
 	github.com/fyne-io/terminal v0.0.0-20250418150501-61f2dac1c2ad
-	github.com/stretchr/testify v1.10.0
 )
+
+require github.com/stretchr/testify v1.10.0 // indirect
 
 require (
 	fyne.io/systray v1.11.1-0.20250603113521-ca66a66d8b58 // indirect
@@ -23,6 +24,7 @@ require (
 	github.com/fyne-io/glfw-js v0.2.0 // indirect
 	github.com/fyne-io/image v0.1.1 // indirect
 	github.com/fyne-io/oksvg v0.1.0 // indirect
+	github.com/fyne-io/refyne v0.0.0-20250713173451-d4e0638ba129 // indirect
 	github.com/go-gl/gl v0.0.0-20231021071112-07e5d0ea2e71 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20240506104042-037f3cc74f2a // indirect
 	github.com/go-text/render v0.2.0 // indirect

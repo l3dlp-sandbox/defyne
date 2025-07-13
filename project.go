@@ -133,6 +133,7 @@ func main() {
 	w := a.NewWindow("`+name+`")
 
 	g := newGUI()
+	g.win = w
 	w.SetContent(g.makeUI())
 	w.ShowAndRun()
 }
@@ -152,7 +153,9 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-type gui struct {}
+type gui struct {
+	win fyne.Window
+}
 
 func newGUI() *gui {
 	return &gui{}
