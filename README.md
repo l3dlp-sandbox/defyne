@@ -1,18 +1,17 @@
 # DEFyne
 
-This repo contains the work-in-progress Fyne IDE.
+This repo contains historical initial work on a Fyne IDE.
+
+The ability to work with JSON representation of Fyne widgets has
+been split out to a new project, [refyne](../refyne).
+
+Efforts to build Fyne IDE have largely move to the [Apptrix.ai](https://apptrix.ai) project.
 
 ## Features
 
 * Embedded terminal
 * GUI Editor
 * Image preview
-
-## TODO
-
-* Various types of editor
-* Syntax highlighting
-* Standard test/debug launchers
 
 ## Screenshot
 
@@ -23,26 +22,3 @@ This repo contains the work-in-progress Fyne IDE.
 Can be installed directly using standard go tools:
 
 	$ go install -v github.com/fyne-io/defyne@latest
-
-
-## Contribution Setup
-
-Clone the repo:
-
-	$ git clone https://github.com/fyne-io/defyne
-
-Move into the directory:
-
-	$ cd defyne
-
-Get the dependencies:
-
-	$ go mod tidy
-
-Build DEFyne
-
-	$ go build
-
-Run DEFyne, opening the current directory
-
-	$ ./defyne .
